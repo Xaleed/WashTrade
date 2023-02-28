@@ -2,76 +2,28 @@
 library(shinydashboard)
 library(ggplot2)
 library(tidyr)
-library(writexl)
-library(reshape2)
-library(plotly)
 library(formattable)
 library(igraph)
 library(dplyr)
 library("plyr")                                                 
 library("readr")  
-library("readxl")
-library(writexl)
-
 ########################3
+data1 <- read.csv("D:\\Data\\charkhesi\\ForCharkheshi.csv")
 
-#data2 <- read.csv("D:\\Data\\چرخشی(1).csv")
-#data <- read_xlsx("D:\\App\\CirclTrade\\ربیعی\\bond.xlsx")
-data1 <- read.csv("D:\\Data\\های‌وب\\CHARKHESHIeDITE.csv")
-names(data1)
-quantile(data1$ارزش.معامله,
-         0.6)
-data1 = data1[(data1$ارزش.معامله > quantile(data1$ارزش.معامله,
-                                          0.49)) | (data1$ارزش.معامله < quantile(data1$ارزش.معامله,
-                                                                                 0.52)),]
-
+data1 = data1 %>% slice(1:70000)
 data = data1
 length(data$CValueB)
-data = data[(data$CValueB > quantile(data$CValueB,0.5)) | (data$CValueS > quantile(data$CValueS,0.5)),]
-length(data$CValueB)
-names(data)
-#data = data[,c("Date","Volume","Price", "كد جدید مشتري فروشنده",
-#               "كد جدید مشتري خريدار",
-#               "SMainBrkName","BMainBrkName","SOTraderCode",  "BOTraderCode" )] 
-#data = tail(data, n = 80000)
-#پاکسازی داده
-Fcode = c()
-FN = c()
-names(data)
-data$`كد جدید مشتري فروشنده` = data$کد.جديد.مشتري.فروشنده
-Frosh = unique(data$`كد جدید مشتري فروشنده`)
-for (i in 1:length(Frosh)){
-  dataF = data[data$`كد جدید مشتري فروشنده` == Frosh[i],]
-  Fcode = c(Fcode,Frosh[i])                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
-  FN = c(FN, length((dataF$تاريخ)))
-}
 
-Kcode = c()
-KN = c()
-data$`كد جدید مشتري خريدار` = data$کد.جديد.مشتري.خريدار
-Kharid = unique(data$`كد جدید مشتري خريدار`)
-for (i in 1:length(Kharid)){
-  datas = data[data$`كد جدید مشتري خريدار` == Kharid[i],]
-  Kcode = c(Kcode,Kharid[i])
-  KN = c(KN, length((datas$تاريخ)))
-}
-
-FroshD = data.frame(FN = FN, `كد جدید مشتري فروشنده` = Fcode)
-KharidD = data.frame(KN = KN, `كد جدید مشتري خريدار` = Kcode)
-
-dataF =  data[data$`كد جدید مشتري فروشنده` %in% unique(FroshD[FroshD$FN >= 20, ]$كد.جدید.مشتري.فروشنده), ]
-dataK =  dataF[dataF$`كد جدید مشتري خريدار` %in% unique(KharidD[KharidD$KN >= 20, ]$كد.جدید.مشتري.خريدار), ]
-length(dataK$`كد جدید مشتري خريدار`)
 ############################
 ui <- dashboardPage(
-  dashboardHeader(title = "نظارت بر بازار"),
+  dashboardHeader(title = "Market supervision"),
   dashboardSidebar(
  
     fluidPage(
-      selectInput("NumberOfDay", "حداقل معامله سهامدار",
+      selectInput("NumberOfDay", "Minimum Number Of Trade",
                   unique(c(4,8,1,2,3,5,6,7,9,10))
       ),
-      selectInput("LengthOfPath", "طول معامله چرخشی",
+      selectInput("LengthOfPath", "Length Of Wash Trade",
                   unique(c(3,1,2,3,4, 5, 6))
       ),
       uiOutput("n1")
@@ -91,14 +43,14 @@ ui <- dashboardPage(
     "
                 ),
               
-                tabPanel("ریز معاملات",
+                tabPanel("Details of Trades",
                          
                          fluidRow( 
                            DT::dataTableOutput("TotalRankingV"
                            )),
                          downloadButton("TotalRankingVD", "Download")
                        ),
-                tabPanel("فراوانی معاملات چرخشی",
+                tabPanel("Frequency of Wash Trades",
                          fluidRow( 
                            DT::dataTableOutput(
                            "mytable1V")),
@@ -107,10 +59,10 @@ ui <- dashboardPage(
                            DT::dataTableOutput("mytable2V"
                            ))
                 ),
-                tabPanel("نمودارها",
+                tabPanel("Graph",
 
                          fluidRow(
-                            title = "گراف",
+                            title = "Graph",
                                  plotlyOutput("plot2", height = 250)
                          ),
                          plotOutput("plot1", click = "plot_click"),
@@ -123,23 +75,20 @@ ui <- dashboardPage(
 
 server <- function(input, output) {
   ddd <- reactive({
-    
-    #dataF =  data[data$`كد جدید مشتري فروشنده` %in% unique(FroshD[FroshD$FN >= input$NumberOfDay, ]$`كد جدید مشتري فروشنده`), ]
-    #dataK =  dataF[dataF$`كد جدید مشتري خريدار` %in% unique(KharidD[KharidD$KN >= input$NumberOfDay, ]$`كد جدید مشتري خريدار`), ]
-    #dataK = data
-    from1 = sapply(dataK$`كد جدید مشتري فروشنده`
+    dataK = data
+    from1 = sapply(dataK$CodOfSeller
                    ,
                    toString)
     
-    to1 = sapply(dataK$`كد جدید مشتري خريدار`
+    to1 = sapply(dataK$CodOfBuyer
                  ,
                  toString)
     from1 = from1
     to1 = to1
     dataa2 = cbind(from1, to1)
     
-    dataK$concat = paste0(dataK$`كد جدید مشتري فروشنده`,
-                          dataK$`كد جدید مشتري خريدار`)
+    dataK$concat = paste0(dataK$CodOfSeller,
+                          dataK$CodOfBuyer)
     ##############################
     ###############################
     Frosh2 = c()
@@ -197,13 +146,13 @@ server <- function(input, output) {
   })
   ##########################
   output$n1 <- renderUI({
-    selectInput("no1", "شماره ملی", choices=unique(ddd()$`كد جدید مشتري فروشنده`), multiple=T)
+    selectInput("no1", "code of Trader", choices=unique(ddd()$CodOfSeller), multiple=T)
   })
   ##########################Rank
   
   output$TotalRankingV <-DT::renderDataTable({
     if(!is.null(input$no1)){
-      ddd()[(ddd()$`كد جدید مشتري فروشنده` %in% input$no1) | (ddd()$`كد جدید مشتري خريدار` %in% input$no1), ]
+      ddd()[(ddd()$CodOfSeller %in% input$no1) | (ddd()$CodOfBuyer %in% input$no1), ]
     }else{
       ddd()
     }
@@ -212,13 +161,13 @@ server <- function(input, output) {
 
   output$mytable1V <-DT::renderDataTable({
     if(!is.null(input$no1)){
-    ddd = ddd()[(ddd()$`كد جدید مشتري فروشنده` %in% input$no1) | (ddd()$`كد جدید مشتري خريدار` %in% input$no1), ]
+    ddd = ddd()[(ddd()$CodOfSeller %in% input$no1) | (ddd()$CodOfBuyer %in% input$no1), ]
     
-    from1 = sapply(ddd$`كد جدید مشتري فروشنده`
+    from1 = sapply(ddd$CodOfSeller
                    ,
                    toString)
     
-    to1 = sapply(ddd$`كد جدید مشتري خريدار`
+    to1 = sapply(ddd$CodOfBuyer
                  ,
                  toString)
     from1 = from1
@@ -323,11 +272,11 @@ server <- function(input, output) {
     NCir
     }else{
       ddd = ddd()
-      from1 = sapply(ddd$`كد جدید مشتري فروشنده`
+      from1 = sapply(ddd$CodOfSeller
                      ,
                      toString)
       
-      to1 = sapply(ddd$`كد جدید مشتري خريدار`
+      to1 = sapply(ddd$CodOfBuyer
                    ,
                    toString)
       from1 = from1
@@ -443,13 +392,13 @@ server <- function(input, output) {
   
   output$plot1 <- renderPlot({
     if(!is.null(input$no1)){
-      ddd = ddd()[(ddd()$`كد جدید مشتري فروشنده` %in% input$no1) | (ddd()$`كد جدید مشتري خريدار` %in% input$no1), ]
+      ddd = ddd()[(ddd()$CodOfSeller %in% input$no1) | (ddd()$CodOfBuyer %in% input$no1), ]
       
-      from1 = sapply(ddd$`كد جدید مشتري فروشنده`
+      from1 = sapply(ddd$CodOfSeller
                      ,
                      toString)
       
-      to1 = sapply(ddd$`كد جدید مشتري خريدار`
+      to1 = sapply(ddd$CodOfBuyer
                    ,
                    toString)
       from1 = from1
@@ -460,11 +409,11 @@ server <- function(input, output) {
       fig <- plot(graph, layout = layout.circle, vertex.size = 8)
       fig
     }else{
-    from1 = sapply(ddd()$`كد جدید مشتري فروشنده`
+    from1 = sapply(ddd()$CodOfSeller
                    ,
                    toString)
     
-    to1 = sapply(ddd()$`كد جدید مشتري خريدار`
+    to1 = sapply(ddd()$CodOfBuyer
                  ,
                  toString)
     from1 = from1
