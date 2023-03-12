@@ -27,7 +27,6 @@ ui <- dashboardPage(
                   unique(c(3,1,2,3,4, 5, 6))
       ),
       uiOutput("n1")
-      # tableOutput("data")
     )
     
   ),
@@ -63,7 +62,7 @@ ui <- dashboardPage(
 
                          fluidRow(
                             title = "Graph",
-                                 plotlyOutput("plot2", height = 250)
+                                 plotOutput("plot2", height = 250)
                          ),
                          plotOutput("plot1", click = "plot_click"),
                          plotOutput("plot3", click = "plot_click")
@@ -101,33 +100,21 @@ server <- function(input, output) {
     DD = data.frame(FF = from1, Too = to1)
     from11 = DD$FF
     to11 = DD$Too
-    #dataa2 = cbind(from1, to1)
-    #graph1 <- graph_from_edgelist(dataa1)
-    #graph2 <- graph_from_edgelist(dataa2)
-    #dataa2 = dataa2[from1 == from1[1],]
     mm = unique(DD$FF)
-
     for (k in 1:length(mm)){
       dataa2 = cbind(from1, to1)
-      #graph1 <- graph_from_edgelist(dataa1)
       graph2 <- graph_from_edgelist(dataa2)
       Ne = neighbors(graph2, mm[k])
       for (j in 1:length(Ne)){
-        # print(unique(from)[k])
         a = all_simple_paths(graph2, Ne[j],mm[k], cutoff = input$LengthOfPath)
         if (length(a) > 0){
           for (i in 1:length(a)){
             tt = as_ids(a[[i]])
             
             if(length(tt) == input$LengthOfPath){
-              # CountVector = append(CountVector, rep(paste(c(k,j,i), collapse = '_'), times = length(tt)))
               Kharid2 = append(Kharid2, c(tt))
               Frosh2 = append(Frosh2, c(mm[k], tt[1:length(tt)-1]))
-              #print(c(unique(from)[k], as_ids(a[[1]])))
-              #print(Kharid2)
-             # print(Frosh2)
             }
-            #print(length((list(all_simple_paths(graph, Ne[j],unique(from)[k], cutoff = LengthOfPath)))))
           }
         }
       }
@@ -137,7 +124,6 @@ server <- function(input, output) {
     }
     
     from1 = Frosh2
-    #CountVector
     from1 = from1
     to1 = Kharid2
     to1 = to1
@@ -149,70 +135,47 @@ server <- function(input, output) {
     selectInput("no1", "code of Trader", choices=unique(ddd()$CodOfSeller), multiple=T)
   })
   ##########################Rank
-  
   output$TotalRankingV <-DT::renderDataTable({
     if(!is.null(input$no1)){
       ddd()[(ddd()$CodOfSeller %in% input$no1) | (ddd()$CodOfBuyer %in% input$no1), ]
     }else{
       ddd()
     }
-    
   })
-
   output$mytable1V <-DT::renderDataTable({
     if(!is.null(input$no1)){
     ddd = ddd()[(ddd()$CodOfSeller %in% input$no1) | (ddd()$CodOfBuyer %in% input$no1), ]
-    
     from1 = sapply(ddd$CodOfSeller
                    ,
                    toString)
-    
     to1 = sapply(ddd$CodOfBuyer
                  ,
                  toString)
     from1 = from1
     to1 = to1
     dataa2 = cbind(from1, to1)
-
     ##############################
     ###############################
     Frosh2 = c()
-    
-    
     Kharid2 = c()
-    
     count = c()
-    
     DD = data.frame(FF = from1, Too = to1)
     from11 = DD$FF
     to11 = DD$Too
-    #dataa2 = cbind(from1, to1)
-    #graph1 <- graph_from_edgelist(dataa1)
-    #graph2 <- graph_from_edgelist(dataa2)
-    #dataa2 = dataa2[from1 == from1[1],]
     mm = unique(DD$FF)
-    
     for (k in 1:length(mm)){
       dataa2 = cbind(from1, to1)
-      #graph1 <- graph_from_edgelist(dataa1)
       graph2 <- graph_from_edgelist(dataa2)
       Ne = neighbors(graph2, mm[k])
       for (j in 1:length(Ne)){
-        # print(unique(from)[k])
         a = all_simple_paths(graph2, Ne[j],mm[k], cutoff = input$LengthOfPath)
         if (length(a) > 0){
           for (i in 1:length(a)){
             tt = as_ids(a[[i]])
-            
             if(length(tt) == input$LengthOfPath){
-              # CountVector = append(CountVector, rep(paste(c(k,j,i), collapse = '_'), times = length(tt)))
               Kharid2 = append(Kharid2, c(tt))
               Frosh2 = append(Frosh2, c(mm[k], tt[1:length(tt)-1]))
-              #print(c(unique(from)[k], as_ids(a[[1]])))
-              #print(Kharid2)
-              # print(Frosh2)
             }
-            #print(length((list(all_simple_paths(graph, Ne[j],unique(from)[k], cutoff = LengthOfPath)))))
           }
         }
       }
@@ -220,9 +183,6 @@ server <- function(input, output) {
       from1 = DD$FF
       to1 = DD$Too
     }
-    
-    
-    
     Dir <- data.frame(
       x1 = numeric(),
       x2 = numeric(),
@@ -243,14 +203,7 @@ server <- function(input, output) {
       x17 = numeric(),
       x18 = numeric(),
       x19 = numeric())
-    
-    #Cir = Dir %>% select(1:(input$LengthOfPath))
     Cir = Dir[,c(1:(input$LengthOfPath))]
-    
-   # Frosh2 = ddd()$کد.جديد.مشتري.فروشنده
-   # Kharid2 = ddd()$کد.جديد.مشتري.خريدار
-    
-    
     Cir$Sum = numeric()
     Frosh22 = as.double(Frosh2)
     co= as.numeric(input$LengthOfPath)
@@ -286,42 +239,26 @@ server <- function(input, output) {
       ##############################
       ###############################
       Frosh2 = c()
-      
-      
       Kharid2 = c()
-      
       count = c()
-      
       DD = data.frame(FF = from1, Too = to1)
       from11 = DD$FF
       to11 = DD$Too
-      #dataa2 = cbind(from1, to1)
-      #graph1 <- graph_from_edgelist(dataa1)
-      #graph2 <- graph_from_edgelist(dataa2)
-      #dataa2 = dataa2[from1 == from1[1],]
       mm = unique(DD$FF)
-      
       for (k in 1:length(mm)){
         dataa2 = cbind(from1, to1)
-        #graph1 <- graph_from_edgelist(dataa1)
         graph2 <- graph_from_edgelist(dataa2)
         Ne = neighbors(graph2, mm[k])
         for (j in 1:length(Ne)){
-          # print(unique(from)[k])
           a = all_simple_paths(graph2, Ne[j],mm[k], cutoff = input$LengthOfPath)
           if (length(a) > 0){
             for (i in 1:length(a)){
               tt = as_ids(a[[i]])
               
               if(length(tt) == input$LengthOfPath){
-                # CountVector = append(CountVector, rep(paste(c(k,j,i), collapse = '_'), times = length(tt)))
                 Kharid2 = append(Kharid2, c(tt))
                 Frosh2 = append(Frosh2, c(mm[k], tt[1:length(tt)-1]))
-                #print(c(unique(from)[k], as_ids(a[[1]])))
-                #print(Kharid2)
-                # print(Frosh2)
               }
-              #print(length((list(all_simple_paths(graph, Ne[j],unique(from)[k], cutoff = LengthOfPath)))))
             }
           }
         }
@@ -352,14 +289,7 @@ server <- function(input, output) {
         x17 = numeric(),
         x18 = numeric(),
         x19 = numeric())
-      
-      #Cir = Dir %>% select(1:(input$LengthOfPath))
       Cir = Dir[,c(1:(input$LengthOfPath))]
-      
-      # Frosh2 = ddd()$کد.جديد.مشتري.فروشنده
-      # Kharid2 = ddd()$کد.جديد.مشتري.خريدار
-      
-      
       Cir$Sum = numeric()
       Frosh22 = as.double(Frosh2)
       co= as.numeric(input$LengthOfPath)
@@ -367,7 +297,6 @@ server <- function(input, output) {
         Cir[i,] = c(Frosh22[((i-1)*co+1):((i-1)*co+co)],
                     sum(Frosh22[((i-1)*co+1):((i-1)*co+co)]))
       } 
-      
       USum = unique(Cir$Sum)
       NCir = Cir[Cir$Sum == USum[1],][1,]
       Fre = c(length(Cir[Cir$Sum == USum[1],]$Sum))
@@ -381,30 +310,18 @@ server <- function(input, output) {
       NCir
     }
       })
-  
-  
-  
-  
-
-  
-  
-  
-  
   output$plot1 <- renderPlot({
     if(!is.null(input$no1)){
       ddd = ddd()[(ddd()$CodOfSeller %in% input$no1) | (ddd()$CodOfBuyer %in% input$no1), ]
-      
       from1 = sapply(ddd$CodOfSeller
                      ,
                      toString)
-      
       to1 = sapply(ddd$CodOfBuyer
                    ,
                    toString)
       from1 = from1
       to1 = to1
       dataa2 = cbind(from1, to1)
-      
       graph <- graph_from_edgelist(dataa2)
       fig <- plot(graph, layout = layout.circle, vertex.size = 8)
       fig
